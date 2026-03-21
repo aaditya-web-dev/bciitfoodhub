@@ -120,7 +120,7 @@ Manage products & orders.
 
 ## User Home Page Link : http://127.0.0.1:8000/
 
-<img width="2048" height="2542" alt="Image" src="https://github.com/user-attachments/assets/a20acb22-bdb7-4435-8abe-464d2fcb2770" />
+<!-- <img width="2048" height="2542" alt="Image" src="https://github.com/user-attachments/assets/a20acb22-bdb7-4435-8abe-464d2fcb2770" />
 
 <img width="2048" height="2516" alt="Image" src="https://github.com/user-attachments/assets/c3467bf7-d759-4764-a9a3-0be4d8f8818c" />
 
@@ -166,4 +166,4 @@ Manage products & orders.
 
 <img width="1366" height="702" alt="Image" src="https://github.com/user-attachments/assets/e70c053f-47fb-4b98-908c-474d54af60e0" />
 
-<img width="1366" height="706" alt="Image" src="https://github.com/user-attachments/assets/f7ae2df3-d061-422e-9d68-d48f3364353f" />
+<img width="1366" height="706" alt="Image" src="https://github.com/user-attachments/assets/f7ae2df3-d061-422e-9d68-d48f3364353f" /> -->
