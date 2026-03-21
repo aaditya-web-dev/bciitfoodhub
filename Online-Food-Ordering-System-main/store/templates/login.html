@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - BCIIT FOODHUB{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center align-items-center min-vh-80">
+        <div class="col-xxl-4 col-lg-5 col-md-7">
+            <!-- Animated Background Circles -->
+            <div class="position-relative">
+                <div class="circle-decoration circle-1"></div>
+                <div class="circle-decoration circle-2"></div>
+                <div class="circle-decoration circle-3"></div>
+                
+                <!-- Login Card -->
+                <div class="card login-card shadow-lg border-0 overflow-hidden">
+                    <div class="card-header position-relative">
+                        <!-- Gradient Header -->
+                        <div class="gradient-bg-overlay"></div>
+                        <div class="position-relative z-1 text-center py-4">
+                            <!-- Logo -->
+                            <div class="login-logo mb-3">
+                                <div class="logo-icon-large mx-auto mb-3">
+                                    <i class="bi bi-egg-fried"></i>
+                                </div>
+                                <h2 class="fw-bold mb-0">
+                                    <span class="text-white">BCIIT</span>
+                                    <span class="text-warning">FOODHUB</span>
+                                </h2>
+                                <p class="text-light opacity-75 mb-0">Fresh & Delicious</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body p-4 p-md-5">
+                        <!-- Welcome Message -->
+                        <div class="text-center mb-4">
+                            <h3 class="fw-bold gradient-text">Welcome Back!</h3>
+                            <p class="text-muted">Sign in to your account to continue</p>
+                        </div>
+                        
+                        <!-- Login Form -->
+                        <form method="post" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            
+                            {% if form.errors %}
+                            <!-- Error Alert -->
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    <div>
+                                        <strong>Login Failed!</strong> Please check your credentials.
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Username Field -->
+                            <div class="form-group mb-4">
+                                <label for="username" class="form-label fw-semibold">
+                                    <i class="bi bi-person-fill me-2 text-primary"></i>
+                                    Username
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-person text-muted"></i>
+                                    </span>
+                                    <input type="text" 
+                                           id="username"
+                                           name="username"
+                                           class="form-control border-start-0"
+                                           placeholder="Enter your username"
+                                           required
+                                           autofocus>
+                                    <div class="invalid-feedback">
+                                        Please enter your username.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Password Field -->
+                            <div class="form-group mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label for="password" class="form-label fw-semibold">
+                                        <i class="bi bi-lock-fill me-2 text-primary"></i>
+                                        Password
+                                    </label>
+                                    <a href="#" class="text-decoration-none small text-primary">
+                                        Forgot Password?
+                                    </a>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-key text-muted"></i>
+                                    </span>
+                                    <input type="password" 
+                                           id="password"
+                                           name="password"
+                                           class="form-control border-start-0"
+                                           placeholder="Enter your password"
+                                           required>
+                                    <button class="btn btn-outline-secondary border-start-0" 
+                                            type="button" 
+                                            id="togglePassword">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <div class="invalid-feedback">
+                                        Please enter your password.
+                                    </div>
+                                </div>
+                                <div class="form-text">
+                                    Must be at least 8 characters long
+                                </div>
+                            </div>
+                            
+                            <!-- Remember Me -->
+                            <!-- <div class="form-check mb-4">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="rememberMe">
+                                <label class="form-check-label text-muted" for="rememberMe">
+                                    Remember me
+                                </label>
+                            </div> -->
+                            
+                            <!-- Submit Button -->
+                            <div class="d-grid mb-4">
+                                <button type="submit" 
+                                        class="btn btn-primary btn-lg fw-bold gradient-bg-primary">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                                    Sign In
+                                </button>
+                            </div>
+                            
+                            <!-- Divider -->
+                            <div class="divider d-flex align-items-center my-4">
+                                <p class="text-center text-muted fw-bold mx-3 mb-0">OR</p>
+                            </div>
+                            
+                            <!-- Social Login -->
+                            <!-- <div class="text-center mb-4">
+                                <p class="text-muted mb-3">Sign in with</p>
+                                <div class="d-flex justify-content-center gap-3">
+                                    <button type="button" class="btn btn-outline-primary rounded-circle social-btn">
+                                        <i class="bi bi-google"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary rounded-circle social-btn">
+                                        <i class="bi bi-facebook"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary rounded-circle social-btn">
+                                        <i class="bi bi-github"></i>
+                                    </button>
+                                </div>
+                            </div> -->
+                            
+                            <!-- Registration Link -->
+                            <div class="text-center">
+                                <p class="text-muted mb-2">
+                                    Don't have an account?
+                                    <a href="{% url 'register' %}" class="text-primary fw-bold text-decoration-none">
+                                        Create Account
+                                    </a>
+                                </p>
+                                <a href="{% url 'home' %}" class="text-decoration-none text-muted small">
+                                    <i class="bi bi-arrow-left me-1"></i>
+                                    Back to Home
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Card Footer -->
+                    <div class="card-footer bg-light text-center py-3">
+                        <small class="text-muted">
+                            By signing in, you agree to our 
+                            <a href="#" class="text-decoration-none">Terms</a> and 
+                            <a href="#" class="text-decoration-none">Privacy Policy</a>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Side Content (Visible on large screens) -->
+        <div class="col-lg-5 d-none d-lg-block">
+            <div class="text-center text-lg-start ps-lg-5">
+                <div class="mb-5">
+                    <h1 class="display-5 fw-bold mb-3">
+                        <span class="text-dark">BCIIT</span>
+                        <span class="gradient-text">FOODHUB</span>
+                    </h1>
+                    <p class="lead text-muted">
+                        Serving Happiness on a Plate
+                    </p>
+                </div>
+                
+                <div class="features-list">
+                    <div class="feature-item d-flex align-items-center mb-4">
+                        <div class="feature-icon me-3">
+                            <i class="bi bi-lightning-charge-fill text-warning"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">Fast Delivery</h5>
+                            <p class="text-muted mb-0">Hot meals delivered in 30 minutes or less</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item d-flex align-items-center mb-4">
+                        <div class="feature-icon me-3">
+                            <i class="bi bi-shield-check text-success"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">Secure Payment</h5>
+                            <p class="text-muted mb-0">100% secure payment processing</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item d-flex align-items-center mb-4">
+                        <div class="feature-icon me-3">
+                            <i class="bi bi-star-fill text-warning"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">Premium Quality</h5>
+                            <p class="text-muted mb-0">Fresh ingredients, delicious results</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Testimonial -->
+                <!-- <div class="testimonial-card mt-5">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="avatar me-3">
+                                    <img src="https://ui-avatars.com/api/?name=John+Doe&background=ff6b35&color=fff" 
+                                         alt="User" class="rounded-circle" width="50">
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0">John Doe</h6>
+                                    <small class="text-muted">Regular Customer</small>
+                                </div>
+                            </div>
+                            <p class="mb-0">
+                                <i class="bi bi-quote text-warning"></i>
+                                The best food ordering experience! Fast delivery and amazing quality.
+                                <i class="bi bi-quote text-warning rotate-180"></i>
+                            </p>
+                        </div>
+                    </div>
+                </div> -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Password visibility toggle
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        const passwordInput = document.getElementById('password');
+        const icon = this.querySelector('i');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    });
+    
+    // Form validation
+    (function() {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+        
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+    
+    // Add animation to form
+    document.addEventListener('DOMContentLoaded', function() {
+        const formElements = document.querySelectorAll('.form-group');
+        formElements.forEach((el, index) => {
+            el.style.animationDelay = `${index * 0.1}s`;
+            el.classList.add('animate-on-scroll');
+        });
+    });
+</script>
+{% endblock %}

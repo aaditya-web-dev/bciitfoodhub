@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Register - BCIIT FOODHUB{% endblock %}
+
+{% block content %}
+<div class="container py-4 pt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-7">
+            <!-- Register Card -->
+            <div class="card shadow-sm border-0 mt-3">
+                <div class="card-header bg-gradient text-white py-4">
+                    <div class="text-center">
+                        <h3 class="fw-bold mb-1">
+                            <i class="bi bi-person-plus me-2"></i>
+                            Create Account
+                        </h3>
+                        <p class="mb-0 opacity-75">Join our foodie community</p>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+
+                    <!-- Messages -->
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    <!-- Registration Form -->
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Username -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-person-fill me-1 text-primary"></i>
+                                Username
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-person text-muted"></i>
+                                </span>
+                                <input type="text" name="username" class="form-control" placeholder="Choose a username"
+                                    required>
+                                <div class="invalid-feedback">
+                                    Please choose a username.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-envelope-fill me-1 text-primary"></i>
+                                Email Address
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-envelope text-muted"></i>
+                                </span>
+                                <input type="email" name="email" class="form-control" placeholder="your@email.com"
+                                    required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid email address.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-lock-fill me-1 text-primary"></i>
+                                Password
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-key text-muted"></i>
+                                </span>
+                                <input type="password" name="password" class="form-control"
+                                    placeholder="Create a password" required id="password1">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword1">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <div class="invalid-feedback">
+                                    Please create a password.
+                                </div>
+                            </div>
+                            <div class="form-text">
+                                At least 8 characters with letters and numbers
+                            </div>
+                            <div class="password-strength mt-2">
+                                <div class="strength-meter"></div>
+                            </div>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-lock-fill me-1 text-primary"></i>
+                                Confirm Password
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-key-fill text-muted"></i>
+                                </span>
+                                <input type="password" name="confirm_password" class="form-control"
+                                    placeholder="Confirm your password" required id="password2">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword2">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <div class="invalid-feedback">
+                                    Please confirm your password.
+                                </div>
+                            </div>
+                            <div id="passwordMatch" class="form-text"></div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid mb-4">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold gradient-bg-primary"
+                                id="registerBtn">
+                                <i class="bi bi-person-plus me-2"></i>
+                                Create Account
+                            </button>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="divider d-flex align-items-center my-4">
+                            <p class="text-center text-muted fw-bold mx-3 mb-0">OR</p>
+                        </div>
+
+                        <!-- Login Link -->
+                        <div class="text-center">
+                            <p class="text-muted mb-2">
+                                Already have an account?
+                                <a href="{% url 'login' %}" class="text-primary fw-bold text-decoration-none">
+                                    Sign In Here
+                                </a>
+                            </p>
+                            <a href="{% url 'home' %}" class="text-decoration-none text-muted small">
+                                <i class="bi bi-arrow-left me-1"></i>
+                                Back to Home
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Password toggle
+        function setupPasswordToggle(toggleId, inputId) {
+            const toggleBtn = document.getElementById(toggleId);
+            const passwordInput = document.getElementById(inputId);
+            if (toggleBtn && passwordInput) {
+                toggleBtn.addEventListener('click', function () {
+                    const icon = this.querySelector('i');
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        icon.classList.remove('bi-eye');
+                        icon.classList.add('bi-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        icon.classList.remove('bi-eye-slash');
+                        icon.classList.add('bi-eye');
+                    }
+                });
+            }
+        }
+        setupPasswordToggle('togglePassword1', 'password1');
+        setupPasswordToggle('togglePassword2', 'password2');
+
+        // Password strength & match
+        const password1 = document.getElementById('password1');
+        const password2 = document.getElementById('password2');
+        const strengthMeter = document.querySelector('.strength-meter');
+        const passwordMatch = document.getElementById('passwordMatch');
+
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            if (password.length >= 8) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+            return strength;
+        }
+
+        function updateStrengthMeter(strength) {
+            const width = (strength / 5) * 100;
+            strengthMeter.style.width = width + '%';
+            if (strength <= 2) strengthMeter.className = 'strength-meter strength-weak';
+            else if (strength <= 4) strengthMeter.className = 'strength-meter strength-medium';
+            else strengthMeter.className = 'strength-meter strength-strong';
+        }
+
+        function checkPasswordMatch() {
+            if (password1.value && password2.value) {
+                if (password1.value === password2.value) {
+                    passwordMatch.textContent = 'Passwords match ✓';
+                    passwordMatch.style.color = '#28a745';
+                } else {
+                    passwordMatch.textContent = 'Passwords do not match ✗';
+                    passwordMatch.style.color = '#dc3545';
+                }
+            } else {
+                passwordMatch.textContent = '';
+            }
+        }
+
+        password1.addEventListener('input', function () {
+            const strength = checkPasswordStrength(this.value);
+            updateStrengthMeter(strength);
+            checkPasswordMatch();
+        });
+        password2.addEventListener('input', checkPasswordMatch);
+
+        // Form validation
+        (function () {
+            'use strict';
+            const forms = document.querySelectorAll('.needs-validation');
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+
+        // Loading state
+        const form = document.querySelector('form.needs-validation');
+        const registerBtn = document.getElementById('registerBtn');
+
+        form.addEventListener('submit', function () {
+            registerBtn.innerHTML =
+                '<span class="spinner-border spinner-border-sm me-2"></span> Creating Account...';
+            registerBtn.disabled = true;
+        });
+
+    });
+</script>
+{% endblock %}

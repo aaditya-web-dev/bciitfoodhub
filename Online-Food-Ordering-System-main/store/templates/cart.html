@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}My Cart - BCIIT FOODHUB{% endblock %}
+
+{% block content %}
+<div class="container py-4 pt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+
+            <!-- Cart Card -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-gradient text-white py-3">
+                    <h5 class="mb-0 fw-bold" style="color: whitesmoke;">
+                        <i class="bi bi-basket me-2"></i>
+                        Your Order Summary
+                    </h5>
+                </div>
+
+
+                <div class="card-body p-4">
+                    {% if cart %}
+                    <!-- Cart Items -->
+                    <div class="cart-items">
+                        {% for key, item in cart.items %}
+                        <div class="cart-item d-flex align-items-center border-bottom py-3">
+                            <!-- Item Image -->
+                            <div class="item-image me-3">
+                                {% if item.image %}
+                                <img src="{{ item.image }}" alt="{{ item.name }}" class="rounded"
+                                    style="width: 80px; height: 80px; object-fit: cover;">
+                                {% else %}
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                    style="width: 80px; height: 80px;">
+                                    <i class="bi bi-egg-fried text-muted fs-4"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Item Details -->
+                            <div class="flex-grow-1">
+                                <!-- <img src="{{ item.image }}" alt="{{ item.name }}" style="width:120px;height:120px;object-fit:cover;border-radius:8px;"> -->
+                                <h6 class="fw-bold mb-1">{{ item.name }}</h6>
+                                <p class="text-muted small mb-2">
+                                    Unit Price: ₹{{ item.price }}
+                                </p>
+
+                                <!-- Quantity Controls -->
+                                <div class="d-flex align-items-center">
+                                    <div class="quantity-control d-flex align-items-center me-3">
+                                        <button class="btn btn-outline-secondary btn-sm decrement" data-id="{{ key }}">
+                                            <i class="bi bi-dash"></i>
+                                        </button>
+                                        <input type="number" class="form-control quantity-input text-center mx-2"
+                                            value="{{ item.quantity }}" min="1" max="10" style="width: 60px;"
+                                            data-id="{{ key }}">
+                                        <button class="btn btn-outline-secondary btn-sm increment" data-id="{{ key }}">
+                                            <i class="bi bi-plus"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Item Total -->
+                                    <span class="text-primary fw-bold me-3">
+                                        ₹<span class="item-total" data-id="{{ key }}">
+                                            {% widthratio item.price 1 item.quantity %}
+                                        </span>
+                                    </span>
+
+                                    <!-- Remove Button -->
+                                    <button class="btn btn-outline-danger btn-sm remove-btn ms-auto"
+                                        data-id="{{ key }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Cart Summary -->
+                    <div class="cart-summary mt-4 pt-4 border-top">
+                        <div class="row">
+                        
+                            <div class="col-md-6">
+                                <div class="bg-light p-3 rounded">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted">Subtotal:</span>
+                                        <span>₹<span id="subtotal">{{ total }}</span></span>
+                                    </div>
+                                   
+                                    <div class="d-flex justify-content-between fw-bold fs-5 mt-3 pt-3 border-top">
+                                        <span>Total Amount:</span>
+                                        <span class="text-primary">₹<span id="grand-total">{{ total }}</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3">
+                        <a href="{% url 'menu' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-left me-1"></i> Back
+                        </a>
+
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-danger" id="clear-cart">
+                                <i class="bi bi-trash me-1"></i> Clear Cart
+                            </button>
+
+                            {% if user.is_authenticated %}
+                            <a href="{% url 'checkout' %}" class="btn btn-primary btn-lg">
+                                <i class="bi bi-lock me-1"></i> Proceed to Checkout
+                            </a>
+                            {% else %}
+                            <a href="{% url 'login' %}?next={% url 'checkout' %}" class="btn btn-primary btn-lg">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Login to Checkout
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% else %}
+                    <!-- Empty Cart -->
+                    <div class="text-center py-5">
+                        <div class="empty-cart-icon mb-4">
+                            <i class="bi bi-cart-x text-muted" style="font-size: 4rem;"></i>
+                        </div>
+                        <h4 class="text-muted mb-3">Your cart is empty</h4>
+                        <p class="text-muted mb-4">Add delicious items from our menu to get started!</p>
+                        <a href="{% url 'menu' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-menu-button-wide me-2"></i> Browse Menu
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="cartToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-success text-white">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong class="me-auto">Cart Updated</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Toast utility
+    function showToast(message) {
+        const toastEl = document.getElementById('cartToast');
+        const toastMessage = document.getElementById('toastMessage');
+        const toast = new bootstrap.Toast(toastEl);
+
+        toastMessage.textContent = message;
+        toast.show();
+    }
+
+    // Update cart function
+    function updateCart(foodId, quantity, action = 'update') {
+        const csrfToken = "{{ csrf_token }}";
+
+        fetch("{% url 'ajax_update_cart' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `food_id=${foodId}&quantity=${quantity}`
+        })
+            .then(res => res.json())
+            .then(data => {
+                // Update total
+                document.getElementById('subtotal').textContent = data.total;
+                document.getElementById('grand-total').textContent = data.total;
+
+                // Update item total
+                const itemTotalEl = document.querySelector(`.item-total[data-id="${foodId}"]`);
+                if (itemTotalEl) {
+                    itemTotalEl.textContent = data.item_total;
+                }
+
+                showToast('Cart updated successfully!');
+
+                // Update cart badge
+                const cartBadge = document.getElementById('cartBadge');
+                if (cartBadge) {
+                    cartBadge.textContent = data.cart_count || 0;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error updating cart. Please try again.');
+            });
+    }
+
+    // Remove item function
+    function removeItem(foodId) {
+        const csrfToken = "{{ csrf_token }}";
+
+        fetch("{% url 'ajax_remove_item' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `food_id=${foodId}`
+        })
+            .then(res => res.json())
+            .then(data => {
+                showToast('Item removed from cart');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error removing item. Please try again.');
+            });
+    }
+
+    // Quantity increment
+    document.querySelectorAll('.increment').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const foodId = this.dataset.id;
+            const input = this.parentElement.querySelector('.quantity-input');
+            let quantity = parseInt(input.value);
+
+            if (quantity < 10) {
+                quantity++;
+                input.value = quantity;
+                updateCart(foodId, quantity);
+            }
+        });
+    });
+
+    // Quantity decrement
+    document.querySelectorAll('.decrement').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const foodId = this.dataset.id;
+            const input = this.parentElement.querySelector('.quantity-input');
+            let quantity = parseInt(input.value);
+
+            if (quantity > 1) {
+                quantity--;
+                input.value = quantity;
+                updateCart(foodId, quantity);
+            } else {
+                if (confirm('Remove this item from cart?')) {
+                    removeItem(foodId);
+                }
+            }
+        });
+    });
+
+    // Direct input change
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('change', function () {
+            const foodId = this.dataset.id;
+            const quantity = parseInt(this.value);
+
+            if (quantity >= 1 && quantity <= 10) {
+                updateCart(foodId, quantity);
+            } else {
+                this.value = Math.min(10, Math.max(1, quantity));
+                updateCart(foodId, this.value);
+            }
+        });
+    });
+
+    // Remove buttons
+    document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const foodId = this.dataset.id;
+            if (confirm('Are you sure you want to remove this item?')) {
+                removeItem(foodId);
+            }
+        });
+    });
+
+    // Clear cart button
+    const clearCartBtn = document.getElementById('clear-cart');
+    if (clearCartBtn) {
+        clearCartBtn.addEventListener('click', function () {
+            if (confirm('Clear all items from cart?')) {
+                // Clear each item one by one
+                document.querySelectorAll('.remove-btn').forEach(btn => {
+                    const foodId = btn.dataset.id;
+                    removeItem(foodId);
+                });
+            }
+        });
+    }
+
+    // Promo code
+    document.querySelector('.btn-outline-primary').addEventListener('click', function () {
+        showToast('Promo code feature coming soon!');
+    });
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        // Add animation to cart items
+        const cartItems = document.querySelectorAll('.cart-item');
+        cartItems.forEach((item, index) => {
+            item.style.animationDelay = `${index * 0.1}s`;
+            item.classList.add('animate-on-scroll');
+        });
+    });
+</script>
+{% endblock %}

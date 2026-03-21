@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}My Orders - BCIIT FOODHUB{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fw-bold">
+            <i class="bi bi-clock-history text-primary me-2"></i>
+            My Orders
+        </h1>
+        <a href="{% url 'menu' %}" class="btn btn-outline-primary">
+            <i class="bi bi-plus-circle me-1"></i> New Order
+        </a>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-gradient text-white py-3">
+            <h5 class="mb-0 fw-bold" style="color: whitesmoke;">
+                <i class="bi bi-receipt me-2"></i>
+                Order History
+            </h5>
+        </div>
+        
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="py-3">Order ID</th>
+                            <th class="py-3">Date & Time</th>
+                            <th class="py-3">Items</th>
+                            <th class="py-3">Total</th>
+                            <th class="py-3">Status</th>
+                            <th class="py-3">Actions</th>
+                        </tr>
+                    </thead>
+                    
+                    <tbody>
+                    {% for order in orders %}
+                    <tr class="align-middle">
+                        <td class="py-3">
+                            <strong class="text-primary">#{{ order.id }}</strong>
+                        </td>
+                        
+                        <td class="py-3">
+                            <div>{{ order.created_at|date:"d M Y" }}</div>
+                            <small class="text-muted">{{ order.created_at|time:"h:i A" }}</small>
+                        </td>
+                        
+                        <td class="py-3">
+                            <div class="order-items">
+                                {% for item in order.items.all %}
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span>{{ item.food.name }}</span>
+                                    <small class="text-muted">× {{ item.quantity }}</small>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        
+                        <td class="py-3">
+                            <span class="fw-bold text-success">₹{{ order.total_price }}</span>
+                        </td>
+                        
+                        <td class="py-3">
+                            {% if order.status == "Placed" %}
+                                <span class="badge bg-warning text-dark p-2">
+                                    <i class="bi bi-clock me-1"></i> {{ order.status }}
+                                </span>
+                            {% elif order.status == "Cancelled" %}
+                                <span class="badge bg-danger p-2">
+                                    <i class="bi bi-x-circle me-1"></i> {{ order.status }}
+                                </span>
+                            {% elif order.status == "Delivered" %}
+                                <span class="badge bg-success p-2">
+                                    <i class="bi bi-check-circle me-1"></i> {{ order.status }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-info p-2">
+                                    <i class="bi bi-truck me-1"></i> {{ order.status }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="py-3">
+                            {% if order.status == "Placed" %}
+                            <form method="post" action="{% url 'cancel_order' order.id %}" 
+                                  class="d-inline cancel-form"
+                                  data-order-id="{{ order.id }}">
+                                {% csrf_token %}
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-danger cancel-btn">
+                                    <i class="bi bi-x-circle me-1"></i> Cancel
+                                </button>
+                            </form>
+                            {% else %}
+                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                <i class="bi bi-eye me-1"></i> View
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="bi bi-receipt text-muted mb-3" style="font-size: 3rem;"></i>
+                                <h4 class="text-muted mb-2">No Orders Yet</h4>
+                                <p class="text-muted mb-4">Your order history will appear here</p>
+                                <a href="{% url 'menu' %}" class="btn btn-primary">
+                                    <i class="bi bi-menu-button-wide me-1"></i> Browse Menu
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Order Summary -->
+        {% if orders %}
+        <div class="card-footer bg-light">
+            <div class="row">
+                <div class="col-md-8">
+                    <p class="mb-0 text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        You have placed <strong>{{ orders.count }}</strong> order{{ orders.count|pluralize }} in total
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <p class="mb-0 text-muted">
+                        Total Spent: <strong class="text-success">₹{{ total_spent|default:"0" }}</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Cancellation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel order <strong id="orderIdDisplay"></strong>?</p>
+                <p class="text-danger small mb-0">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    This action cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Go Back</button>
+                <button type="button" class="btn btn-danger" id="confirmCancel">Cancel Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="orderToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-success text-white">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong class="me-auto">Success!</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cancelModal = new bootstrap.Modal(document.getElementById('cancelModal'));
+    let currentForm = null;
+    
+    // Cancel button click handler
+    document.querySelectorAll('.cancel-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const form = this.closest('.cancel-form');
+            const orderId = form.dataset.orderId;
+            
+            document.getElementById('orderIdDisplay').textContent = '#' + orderId;
+            currentForm = form;
+            cancelModal.show();
+        });
+    });
+    
+    // Confirm cancellation
+    document.getElementById('confirmCancel').addEventListener('click', function() {
+        if (currentForm) {
+            // Show loading state
+            const cancelBtn = currentForm.querySelector('.cancel-btn');
+            const originalText = cancelBtn.innerHTML;
+            cancelBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Cancelling...';
+            cancelBtn.disabled = true;
+            
+            // Submit the form
+            currentForm.submit();
+        }
+    });
+    
+    // Toast utility
+    const toastEl = document.getElementById('orderToast');
+    const toastMessage = document.getElementById('toastMessage');
+    const toast = new bootstrap.Toast(toastEl);
+    
+    // Check for success message in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('cancelled')) {
+        toastMessage.textContent = 'Order cancelled successfully!';
+        toast.show();
+    }
+});
+</script>
+{% endblock %}

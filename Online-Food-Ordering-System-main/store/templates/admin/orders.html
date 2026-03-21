@@ -1,0 +1,23 @@
+{% extends 'admin/base.html' %}
+{% block content %}
+
+<h4>Orders</h4>
+
+<table class="table table-striped">
+    <tr>
+        <th>ID</th><th>User</th><th>Total</th><th>Date</th>
+    </tr>
+    {% for o in orders %}
+        <tr>
+            <td>{{ o.id }}</td>
+            <td>{{ o.user.username }}</td>
+            <td>₹{{ o.total_price }}</td>
+            <td>{{ o.created_at }}</td>
+        </tr>
+    {% endfor %}
+
+</table>
+
+{% endblock %}
+
+

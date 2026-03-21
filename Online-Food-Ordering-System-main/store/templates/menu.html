@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Menu - BCIIT FOODHUB{% endblock %}
+
+{% block content %}
+<!-- Add padding top to account for fixed navbar -->
+<div class="container py-5">
+    <!-- ===== PAGE HEADER ===== -->
+    <div class="text-center mb-5 pt-3">
+        <h1 class="fw-bold display-5 mb-3">
+            <span class="gradient-text">Our Menu</span>
+        </h1>
+        <p class="text-muted fs-5">Choose from our delicious selection of fresh meals</p>
+    </div>
+
+    <!-- ===== MENU FILTERS ===== -->
+    <!-- <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <button class="btn btn-outline-primary active">All Items</button>
+                <button class="btn btn-outline-primary">Veg</button>
+                <button class="btn btn-outline-primary">Non-Veg</button>
+                <button class="btn btn-outline-primary">Bestsellers</button>
+            </div>
+        </div>
+    </div> -->
+
+    <!-- ===== MENU ITEMS ===== -->
+    <div class="row">
+        {% for food in foods %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="card menu-card border-0 shadow-sm h-100">
+                <!-- Food Image -->
+                <div class="food-image-container">
+                    <img src="{{ food.image.url }}"
+                         class="card-img-top food-image"
+                         alt="{{ food.name }}">
+                    {% if food.is_vegetarian %}
+                    <span class="veg-badge">
+                        <i class="bi bi-circle-fill"></i>
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Card Body -->
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fw-bold mb-2">{{ food.name }}</h5>
+                    
+                    <p class="text-muted small mb-3 flex-grow-1">
+                        {% if food.description %}
+                            {{ food.description|truncatechars:60 }}
+                        {% else %}
+                            Delicious and freshly prepared
+                        {% endif %}
+                    </p>
+
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <span class="price fw-bold text-primary fs-5">
+                            ₹{{ food.price }}
+                        </span>
+                        <a href="{% url 'add_to_cart' food.id %}" 
+                           class="btn btn-primary btn-sm add-to-cart-btn">
+                            <i class="bi bi-cart-plus me-1"></i> Add
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-state text-center py-5">
+                <div class="empty-state-icon mb-3">
+                    <i class="bi bi-emoji-frown fs-1 text-muted"></i>
+                </div>
+                <h4 class="text-muted mb-2">Menu Coming Soon</h4>
+                <p class="text-muted mb-4">We're preparing delicious dishes for you!</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+   
+</div>
+
+<!-- Success Toast Notification -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="addToCartToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-success text-white">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong class="me-auto">Success!</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body">
+            Item added to cart successfully!
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Add to cart button animation and toast
+    document.addEventListener('DOMContentLoaded', function() {
+        const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+        const toastEl = document.getElementById('addToCartToast');
+        const toast = new bootstrap.Toast(toastEl);
+        
+        addToCartButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                // Prevent multiple clicks
+                if (this.classList.contains('loading')) return;
+                
+                // Add loading state
+                const originalText = this.innerHTML;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Adding...';
+                this.classList.add('loading');
+                this.disabled = true;
+                
+                // Allow the default link behavior to happen
+                // The toast will be shown after the page reloads or via AJAX
+            });
+        });
+        
+        // Filter buttons functionality
+        const filterButtons = document.querySelectorAll('.btn-outline-primary');
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Here you would typically make an AJAX request to filter items
+                // For now, just show a loading state
+                const cards = document.querySelectorAll('.menu-card');
+                cards.forEach(card => {
+                    card.style.opacity = '0.5';
+                });
+                
+                setTimeout(() => {
+                    cards.forEach(card => {
+                        card.style.opacity = '1';
+                    });
+                }, 300);
+            });
+        });
+    });
+</script>
+{% endblock %}
