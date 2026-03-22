@@ -116,26 +116,23 @@ def ajax_remove_item(request):
 @login_required(login_url='/login/')
 def checkout(request):
     cart = request.session.get('cart', {})
-
-    # calculate total
-    total = sum(
-        item['price'] * item['quantity']
-        for item in cart.values()
-    )
+    total = sum(item['price'] * item['quantity'] for item in cart.values())
 
     if request.method == "POST":
-        email = request.POST.get('email')
+        name = request.user.get_full_name() or request.user.username
+        email = request.user.email
         address = request.POST.get('address')
         phone = request.POST.get('phone')
 
-        # after order placed → clear cart
-        request.session['cart'] = {}
+        # save order to DB here...
 
-        return redirect('order_success')  # optional
+        request.session['cart'] = {}
+        return redirect('order_success')
 
     return render(request, 'checkout.html', {
         'cart': cart,
-        'total': total
+        'total': total,
+        'user': request.user
     })
 # Orders
 

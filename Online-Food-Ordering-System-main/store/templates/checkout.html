@@ -9,26 +9,55 @@
             </div>
 
             <div class="card-body">
-                <form method="post" action="{% url 'place_order' %}">
+                <form method="post" action="{% url 'place_order' %}" novalidate id="checkoutForm">
                     {% csrf_token %}
+
                     <div class="mb-3">
                         <label>Full Name</label>
-                        <input type="text" name="name" class="form-control" required>
+                        <p class="form-control-plaintext fw-bold">{{ user.username }}</p>
                     </div>
 
                     <div class="mb-3">
                         <label>Email</label>
-                        <input type="email" name="email" class="form-control" required>
+                        <p class="form-control-plaintext">{{ user.email }}</p>
                     </div>
 
                     <div class="mb-3">
                         <label>Address</label>
-                        <textarea name="address" class="form-control" required></textarea>
+                        <textarea 
+                            name="address" 
+                            class="form-control" 
+                            minlength="10" 
+                            maxlength="300"
+                            placeholder="Enter your full delivery address" 
+                            required
+                            oninvalid="this.setCustomValidity('Please enter a valid address (min 10 characters)')"
+                            oninput="
+                                this.value = this.value.replace(/^\s+/, '');
+                                let real = this.value.trim();
+                                if(real.length < 10) {
+                                    this.setCustomValidity('Please enter a valid address (min 10 characters)');
+                                } else {
+                                    this.setCustomValidity('');
+                                }
+                            ">
+                        </textarea>
+                        <div class="form-text text-muted">Minimum 10 characters</div>
                     </div>
 
                     <div class="mb-3">
                         <label>Phone</label>
-                        <input type="tel" name="phone" class="form-control" required>
+                        <input 
+                            type="tel" 
+                            name="phone" 
+                            class="form-control" 
+                            pattern="[6-9][0-9]{9}" 
+                            maxlength="10"
+                            placeholder="Enter 10-digit mobile number" 
+                            required
+                            oninvalid="this.setCustomValidity('Enter a valid 10-digit Indian mobile number')"
+                            oninput="this.setCustomValidity(''); this.value = this.value.replace(/\D/g, '')">
+                        <div class="form-text text-muted">Format: 10 digits, starting with 6-9</div>
                     </div>
 
                     <h5 class="text-end">Total: ₹{{ total }}</h5>
@@ -44,5 +73,24 @@
     </div>
 </div>
 
-{% endblock %}
+<script>
+    const form = document.getElementById('checkoutForm');
+    form.addEventListener('submit', function (e) {
 
+        // check address has real content (not just spaces)
+        const address = document.querySelector('textarea[name="address"]');
+        if (address.value.trim().length < 10) {
+            address.setCustomValidity('Please enter a valid address (min 10 characters)');
+        } else {
+            address.setCustomValidity('');
+        }
+
+        if (!form.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+</script>
+
+{% endblock %}
