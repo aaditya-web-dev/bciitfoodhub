@@ -9,7 +9,30 @@ class FoodAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     list_per_page = 10
 
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0   # number of empty forms shown
+    readonly_fields = []
 
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'status', 'created_at', 'total_price')
+    list_filter = ('status', 'created_at')
+    search_fields = ('user__username',)
+    inlines = [OrderItemInline]
+    readonly_fields = ('created_at',)
+
+    def total_price(self, obj):
+        return sum(item.food.price * item.quantity for item in obj.items.all())
+
+    total_price.short_description = 'Total Price'
+
+
+# @admin.register(OrderItem)
+# class OrderItemAdmin(admin.ModelAdmin):
+#     list_display = ('id', 'order', 'food', 'quantity')
+#     search_fields = ('food__name',)
 # admin.site.register(Order);
 admin.site.site_header = "BCIIT FOODHUB"
 admin.site.site_title = "BCIIT FOODHUB"

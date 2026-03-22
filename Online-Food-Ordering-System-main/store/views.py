@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Food, Order, OrderItem
+from .models import Food, Order, OrderItem,PendingOrder
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -146,6 +146,49 @@ def orders(request):
     return render(request, 'orders.html', {'orders': orders})
 
 
+# @login_required(login_url='/login/')
+# def place_order(request):
+#     cart = request.session.get('cart', {})
+
+#     if not cart:
+#         return redirect('cart')
+
+#     total = 0
+
+#     #  Calculate total correctly
+#     for food_id, item in cart.items():
+#         food = Food.objects.get(id=food_id)
+#         total += food.price * item['quantity']
+
+#     #  Create order
+#     order = Order.objects.create(
+#         user=request.user,
+#         total_price=total,
+#         status="Placed"
+#     )
+
+#     #  Create order items
+#     for food_id, item in cart.items():
+#         food = Food.objects.get(id=food_id)
+#         OrderItem.objects.create(
+#             order=order,
+#             food=food,
+#             quantity=item['quantity']
+#         )
+
+#     #  Clear cart
+#     request.session['cart'] = {}
+
+#     return redirect('orders')
+import hashlib
+import uuid
+from django.conf import settings
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from .models import Order, OrderItem, PendingOrder, Food
+
+
 @login_required(login_url='/login/')
 def place_order(request):
     cart = request.session.get('cart', {})
@@ -154,32 +197,98 @@ def place_order(request):
         return redirect('cart')
 
     total = 0
-
-    #  Calculate total correctly
     for food_id, item in cart.items():
         food = Food.objects.get(id=food_id)
         total += food.price * item['quantity']
 
-    #  Create order
-    order = Order.objects.create(
+    amount = "{:.2f}".format(float(total))
+
+    name = request.POST.get('name', request.user.username).strip()
+    email = request.POST.get('email', request.user.email).strip()
+    phone = request.POST.get('phone', '9999999999').strip()
+
+    txnid = 'TXN' + uuid.uuid4().hex[:10].upper()
+
+    PendingOrder.objects.create(
         user=request.user,
-        total_price=total,
-        status="Placed"
+        txnid=txnid,
+        total=amount,
+        cart_data=cart
     )
 
-    #  Create order items
-    for food_id, item in cart.items():
-        food = Food.objects.get(id=food_id)
-        OrderItem.objects.create(
-            order=order,
-            food=food,
-            quantity=item['quantity']
-        )
-
-    #  Clear cart
     request.session['cart'] = {}
 
-    return redirect('orders')
+    hash_string = (
+        f"{settings.PAYU_MERCHANT_KEY}|{txnid}|{amount}|Food Order|"
+        f"{name}|{email}|||||||||||{settings.PAYU_SALT}"
+    )
+    generated_hash = hashlib.sha512(
+        hash_string.encode('utf-8')
+    ).hexdigest()
+
+    payu_data = {
+        'key': settings.PAYU_MERCHANT_KEY,
+        'txnid': txnid,
+        'amount': amount,
+        'productinfo': 'Food Order',
+        'firstname': name,
+        'email': email,
+        'phone': phone,
+        'surl': request.build_absolute_uri('/payment/success/'),
+        'furl': request.build_absolute_uri('/payment/failed/'),
+        'hash': generated_hash,
+        'payu_url': settings.PAYU_BASE_URL,
+    }
+
+    return render(request, 'payment_redirect.html', {'data': payu_data})
+
+
+@csrf_exempt
+def payment_success(request):
+    txnid = request.POST.get('txnid') or request.GET.get('txnid', '')
+    amount = request.POST.get('amount') or request.GET.get('amount', '')
+
+    try:
+        pending = PendingOrder.objects.get(txnid=txnid)
+
+        order = Order.objects.create(
+            user=pending.user,
+            total_price=pending.total,
+            status="Placed"
+        )
+
+        for food_id, item in pending.cart_data.items():
+            food = Food.objects.get(id=food_id)
+            OrderItem.objects.create(
+                order=order,
+                food=food,
+                quantity=item['quantity']
+            )
+
+        pending.delete()
+
+    except PendingOrder.DoesNotExist:
+        pass
+
+    except Exception as e:
+        print("ERROR saving order:", str(e))
+
+    return render(request, 'payment_success.html', {
+        'txnid': txnid,
+        'amount': amount,
+    })
+
+
+@csrf_exempt
+def payment_failed(request):
+    txnid = request.POST.get('txnid') or request.GET.get('txnid', '')
+
+    PendingOrder.objects.filter(txnid=txnid).delete()
+
+    return render(request, 'payment_failed.html', {
+        'error': request.POST.get('error_Message', 'Payment was not completed.')
+    })
+
 
 
 @login_required(login_url='/login/')

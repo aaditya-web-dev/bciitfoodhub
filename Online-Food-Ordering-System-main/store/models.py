@@ -42,10 +42,15 @@ class OrderItem(models.Model):
 
 
 
+class PendingOrder(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    txnid = models.CharField(max_length=100, unique=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    cart_data = models.JSONField()  # store entire cart
+    created_at = models.DateTimeField(auto_now_add=True)
 
-    
-
-
+    def __str__(self):
+        return f"{self.txnid} - {self.user.username}"
 
 
 

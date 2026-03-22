@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-0=#z6+s90(kf-wo33d4gkinlg#yh#q41&k4*&s9%coe=+%#0-x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -111,11 +111,12 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+
+TIME_ZONE = 'Asia/Kolkata' 
+USE_TZ = True
 
 USE_I18N = True
 
-USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
@@ -139,3 +140,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+PAYU_MERCHANT_KEY = "QHklqy"
+PAYU_SALT = "y02qmBYAppBul4pRjI9TGtkCMBCR8X2w"
+PAYU_BASE_URL = "https://test.payu.in/_payment"
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:8000',
+    'https://*.payu.in',
+]

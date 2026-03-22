@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="text-center mt-5">
+  <h1 class="text-danger">❌ Payment Failed!</h1>
+  <p>{{ error }}</p>
+  <a href="{% url 'checkout' %}" class="btn btn-warning">Try Again</a>
+</div>
+{% endblock %}
+```
+
+---
+
+## How the Flow Works Now
+```
+Cart → Checkout (fill name/email/phone) 
+     → place_order view generates hash 
+     → payment_redirect.html auto-submits to PayU 
+     → PayU test payment page 
+     → Success → order saved in DB → orders page
+     → Failed → payment_failed page

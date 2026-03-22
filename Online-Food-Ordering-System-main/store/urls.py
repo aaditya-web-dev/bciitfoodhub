@@ -20,6 +20,11 @@ urlpatterns = [
         path('login/', views.login_view, name='login'),
         path('register/', views.register_view, name='register'),
         path('logout/', views.user_logout, name='logout'),
+        
+        
+        # PayU payment URLs
+path('payment/success/', views.payment_success, name='payment_success'),
+path('payment/failed/', views.payment_failed, name='payment_failed'),
 
 ]
 
