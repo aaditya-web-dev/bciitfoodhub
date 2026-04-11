@@ -4,9 +4,8 @@
 {% block title %}Menu - BCIIT FOODHUB{% endblock %}
 
 {% block content %}
-<!-- Add padding top to account for fixed navbar -->
 <div class="container py-5">
-    <!-- ===== PAGE HEADER ===== -->
+    <!-- PAGE HEADER -->
     <div class="text-center mb-5 pt-3">
         <h1 class="fw-bold display-5 mb-3">
             <span class="gradient-text">Our Menu</span>
@@ -14,19 +13,7 @@
         <p class="text-muted fs-5">Choose from our delicious selection of fresh meals</p>
     </div>
 
-    <!-- ===== MENU FILTERS ===== -->
-    <!-- <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex flex-wrap justify-content-center gap-2">
-                <button class="btn btn-outline-primary active">All Items</button>
-                <button class="btn btn-outline-primary">Veg</button>
-                <button class="btn btn-outline-primary">Non-Veg</button>
-                <button class="btn btn-outline-primary">Bestsellers</button>
-            </div>
-        </div>
-    </div> -->
-
-    <!-- ===== MENU ITEMS ===== -->
+    <!-- MENU ITEMS -->
     <div class="row">
         {% for food in foods %}
         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
@@ -46,7 +33,7 @@
                 <!-- Card Body -->
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title fw-bold mb-2">{{ food.name }}</h5>
-                    
+
                     <p class="text-muted small mb-3 flex-grow-1">
                         {% if food.description %}
                             {{ food.description|truncatechars:60 }}
@@ -56,14 +43,27 @@
                     </p>
 
                     <div class="d-flex justify-content-between align-items-center mt-auto">
-                        <span class="price fw-bold text-primary fs-5">
-                            ₹{{ food.price }}
-                        </span>
-                        <a href="{% url 'add_to_cart' food.id %}" 
-                           class="btn btn-primary btn-sm add-to-cart-btn">
-                            <i class="bi bi-cart-plus me-1"></i> Add
-                        </a>
+                        <span class="price fw-bold text-primary fs-5">₹{{ food.price }}</span>
+
+                        <!-- Cart Control -->
+                        <div class="cart-control" data-food-id="{{ food.id }}" data-food-name="{{ food.name }}">
+                            <!-- Add Button (default) -->
+                            <button class="btn btn-primary btn-sm add-btn">
+                                <i class="bi bi-cart-plus me-1"></i> Add
+                            </button>
+                            <!-- Stepper (shown after adding) -->
+                            <div class="qty-stepper d-none align-items-center">
+                                <button class="btn btn-outline-primary btn-sm px-2 minus-btn">−</button>
+                                <span class="qty-display mx-2 fw-bold">1</span>
+                                <button class="btn btn-primary btn-sm px-2 plus-btn">+</button>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- View Cart link (hidden until item added) -->
+                    <a href="{% url 'cart' %}" class="go-to-cart d-none text-center mt-2 small text-primary">
+                        View cart →
+                    </a>
                 </div>
             </div>
         </div>
@@ -79,20 +79,16 @@
         </div>
         {% endfor %}
     </div>
-
-   
 </div>
 
-<!-- Success Toast Notification -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div id="addToCartToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header bg-success text-white">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            <strong class="me-auto">Success!</strong>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-        </div>
-        <div class="toast-body">
-            Item added to cart successfully!
+<!-- Toast Notification -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+    <div id="cartToast" class="toast align-items-center text-white border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body fw-semibold" id="toastMessage">
+                <i class="bi bi-check-circle-fill me-2"></i> Item added to cart!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
     </div>
 </div>
@@ -100,51 +96,144 @@
 
 {% block extra_scripts %}
 <script>
-    // Add to cart button animation and toast
-    document.addEventListener('DOMContentLoaded', function() {
-        const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
-        const toastEl = document.getElementById('addToCartToast');
-        const toast = new bootstrap.Toast(toastEl);
-        
-        addToCartButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                // Prevent multiple clicks
-                if (this.classList.contains('loading')) return;
-                
-                // Add loading state
-                const originalText = this.innerHTML;
-                this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Adding...';
-                this.classList.add('loading');
-                this.disabled = true;
-                
-                // Allow the default link behavior to happen
-                // The toast will be shown after the page reloads or via AJAX
-            });
+const CSRF_TOKEN = '{{ csrf_token }}';
+
+function showToast(message, isSuccess = true) {
+    const toastEl = document.getElementById('cartToast');
+    const toastMsg = document.getElementById('toastMessage');
+    toastEl.className = `toast align-items-center text-white border-0 ${isSuccess ? 'bg-success' : 'bg-danger'}`;
+    toastMsg.innerHTML = `<i class="bi bi-${isSuccess ? 'check-circle-fill' : 'x-circle-fill'} me-2"></i> ${message}`;
+    bootstrap.Toast.getOrCreateInstance(toastEl).show();
+}
+
+function updateCartBadge(totalItems) {
+    const badge = document.getElementById('cart-count');
+    if (badge) badge.textContent = totalItems;
+}
+
+function ajaxUpdateCart(foodId, quantity, onSuccess) {
+    fetch('/ajax-update-cart/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': CSRF_TOKEN,
+            'x-requested-with': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ food_id: foodId, quantity: quantity })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            updateCartBadge(data.total_items);
+            if (onSuccess) onSuccess(data);
+        }
+    })
+    .catch(() => showToast('Something went wrong!', false));
+}
+
+function initCards(cartData) {
+    document.querySelectorAll('.cart-control').forEach(control => {
+        const foodId = String(control.dataset.foodId);
+        const foodName = control.dataset.foodName;
+        const addBtn = control.querySelector('.add-btn');
+        const stepper = control.querySelector('.qty-stepper');
+        const qtyDisplay = control.querySelector('.qty-display');
+        const cardBody = control.closest('.card-body');
+        const goCart = cardBody.querySelector('.go-to-cart');
+
+        // ✅ Always read fresh qty from server response
+        let qty = 0;
+        if (cartData[foodId] && cartData[foodId].quantity > 0) {
+            qty = cartData[foodId].quantity;
+        }
+
+        function showStepper() {
+            addBtn.classList.add('d-none');
+            stepper.classList.remove('d-none');
+            stepper.classList.add('d-flex');
+            goCart.classList.remove('d-none');
+            qtyDisplay.textContent = qty;
+        }
+
+        function showAddBtn() {
+            stepper.classList.add('d-none');
+            stepper.classList.remove('d-flex');
+            addBtn.classList.remove('d-none');
+            goCart.classList.add('d-none');
+        }
+
+        // ✅ Restore correct state on load
+        if (qty > 0) {
+            showStepper();
+        } else {
+            showAddBtn();
+        }
+
+        // Remove old listeners by cloning
+        const newControl = control.cloneNode(true);
+        control.parentNode.replaceChild(newControl, control);
+
+        const freshAddBtn = newControl.querySelector('.add-btn');
+        const freshStepper = newControl.querySelector('.qty-stepper');
+        const freshQtyDisplay = newControl.querySelector('.qty-display');
+        const freshGoCart = cardBody.querySelector('.go-to-cart');
+
+        function showFreshStepper() {
+            freshAddBtn.classList.add('d-none');
+            freshStepper.classList.remove('d-none');
+            freshStepper.classList.add('d-flex');
+            freshGoCart.classList.remove('d-none');
+            freshQtyDisplay.textContent = qty;
+        }
+
+        function showFreshAddBtn() {
+            freshStepper.classList.add('d-none');
+            freshStepper.classList.remove('d-flex');
+            freshAddBtn.classList.remove('d-none');
+            freshGoCart.classList.add('d-none');
+        }
+
+        if (qty > 0) showFreshStepper();
+        else showFreshAddBtn();
+
+        freshAddBtn.addEventListener('click', () => {
+            qty = 1;
+            showFreshStepper();
+            ajaxUpdateCart(foodId, qty, () => showToast(`${foodName} added to cart!`));
         });
-        
-        // Filter buttons functionality
-        const filterButtons = document.querySelectorAll('.btn-outline-primary');
-        filterButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                // Remove active class from all buttons
-                filterButtons.forEach(btn => btn.classList.remove('active'));
-                // Add active class to clicked button
-                this.classList.add('active');
-                
-                // Here you would typically make an AJAX request to filter items
-                // For now, just show a loading state
-                const cards = document.querySelectorAll('.menu-card');
-                cards.forEach(card => {
-                    card.style.opacity = '0.5';
-                });
-                
-                setTimeout(() => {
-                    cards.forEach(card => {
-                        card.style.opacity = '1';
-                    });
-                }, 300);
-            });
+
+        newControl.querySelector('.plus-btn').addEventListener('click', () => {
+            qty++;
+            freshQtyDisplay.textContent = qty;
+            ajaxUpdateCart(foodId, qty, () => showToast(`${foodName} × ${qty} in cart`));
+        });
+
+        newControl.querySelector('.minus-btn').addEventListener('click', () => {
+            qty--;
+            if (qty <= 0) {
+                qty = 0;
+                showFreshAddBtn();
+                ajaxUpdateCart(foodId, qty, () => showToast(`${foodName} removed from cart`, false));
+            } else {
+                freshQtyDisplay.textContent = qty;
+                ajaxUpdateCart(foodId, qty, () => showToast(`${foodName} × ${qty} in cart`));
+            }
         });
     });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    // ✅ Fetch fresh cart from server every time page loads
+    fetch('/get-cart/')
+        .then(res => res.json())
+        .then(cartData => {
+            initCards(cartData);
+        })
+        .catch(() => {
+            // Fallback: init with empty cart
+            initCards({});
+        });
+});
 </script>
+
 {% endblock %}
