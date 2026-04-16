@@ -11,7 +11,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -142,8 +145,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-PAYU_MERCHANT_KEY = "QHklqy"
-PAYU_SALT = "y02qmBYAppBul4pRjI9TGtkCMBCR8X2w"
+PAYU_MERCHANT_KEY = os.getenv("PAYU_MERCHANT_KEY")
+PAYU_SALT = os.getenv("PAYU_SALT")
 PAYU_BASE_URL = "https://test.payu.in/_payment"
 
 CSRF_TRUSTED_ORIGINS = [
