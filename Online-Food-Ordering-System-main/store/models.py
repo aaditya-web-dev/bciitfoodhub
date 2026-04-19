@@ -10,9 +10,14 @@ class Food(models.Model):
     def __str__(self):
         return self.name
 
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    phone = models.CharField(max_length=15)
+    
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    txnid = models.CharField(max_length=100, unique=True)  # ✅ ADD THIS
     total_price = models.IntegerField()   
     STATUS_CHOICES = [
     ('Pending', 'Pending'),

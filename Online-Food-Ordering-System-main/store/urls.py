@@ -10,16 +10,21 @@ urlpatterns = [
         path('ajax-update-cart/', views.ajax_update_cart, name='ajax_update_cart'),
         path('remove/<int:food_id>/', views.remove_item, name='remove_item'),
         path('ajax-remove-item/', views.ajax_remove_item, name='ajax_remove_item'),
+        path('get-cart/', views.get_cart_data, name='get_cart_data'),
+        path('cart/clear/', views.ajax_clear_cart, name='ajax_clear_cart'),
 
         path('checkout/', views.checkout, name='checkout'),
         path('orders/', views.orders, name='orders'),
         path('place-order/', views.place_order, name='place_order'),
         path('cancel-order/<int:order_id>/', views.cancel_order, name='cancel_order'),
+        path('payment-success/', views.payment_success_page, name='payment_success_page'),
         
 
         path('login/', views.login_view, name='login'),
         path('register/', views.register_view, name='register'),
         path('logout/', views.user_logout, name='logout'),
+        
+        path('orders/<int:order_id>/invoice/', views.download_invoice, name='download_invoice'),
         
         
         # PayU payment URLs

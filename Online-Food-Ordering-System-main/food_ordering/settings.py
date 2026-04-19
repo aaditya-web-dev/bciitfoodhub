@@ -10,6 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+# settings.py
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True      # Required when SameSite=None
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
+
 from pathlib import Path
 import os
 from dotenv import load_dotenv
@@ -41,7 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'store',
+    'store.apps.StoreConfig',  # ✅ not just 'store'
     
 ]
 
