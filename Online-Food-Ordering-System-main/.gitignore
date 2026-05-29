@@ -1,1 +1,9 @@
 .env
+
+**/migrations/*
+!**/migrations/__init__.py
+
+
+# Python cache
+__pycache__/
+

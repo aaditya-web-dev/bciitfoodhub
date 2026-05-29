@@ -36,60 +36,7 @@ Database	MySQL,
 Authentication	Django Auth,
 Media Storage	Django Media Files.
 
-## 📂 Project File Structure
 
-food_project/
-│
-├── food_ordering/                # Project settings
-│   ├── __init__.py
-│   ├── settings.py
-│   ├── urls.py
-│   ├── asgi.py
-│   └── wsgi.py
-│
-├── store/                        # Main application
-│   ├── migrations/
-│   ├── static/
-│   │   ├── css/
-│   │   │   └── style.css
-│   │   └── images/
-│   │       └── hero-food.jpg
-│   │
-│   ├── templates/
-│   │   ├── base.html
-│   │   ├── home.html
-│   │   ├── menu.html
-│   │   ├── cart.html
-│   │   ├── checkout.html
-│   │   ├── orders.html
-│   │   ├── login.html
-│   │   ├── register.html
-│   │
-│   │   └── admin/               # Separate Admin Dashboard
-│   │       ├── dashboard.html
-│   │       ├── products.html
-│   │       ├── add_product.html
-│   │       ├── edit_product.html
-│   │       └── orders.html
-│   │
-│   ├── admin.py
-│   ├── admin_urls.py            # Custom admin routing
-│   ├── admin_views.py           # Admin logic
-│   ├── apps.py
-│   ├── models.py
-│   ├── views.py                 # User views
-│   ├── urls.py
-│   └── tests.py
-│
-├── media/
-│   └── foods/
-│       ├── burger.jpg
-│       ├── pasta.jpg
-│       ├── pizza.jpg
-│       └── sandwich.jpg
-│
-├── manage.py
-└── requirements.txt
 
 ## 🗂️ Main Modules Explained
  🔐 Authentication
@@ -98,7 +45,7 @@ Uses Django’s built-in authentication system,
 Login & Register pages styled with Bootstrap,
 Session-based cart support.
 
-## 🛒 Cart System
+## 🛒 Cart System (AJAX)
 
 Add items to cart,
 Update quantity,

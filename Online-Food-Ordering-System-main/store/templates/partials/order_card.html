@@ -1,0 +1,106 @@
+<div class="order-card">
+
+  <div class="oc-top">
+    <div class="oc-rest-row">
+      <div class="oc-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e65c00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/>
+          <path d="M7 2v20"/>
+          <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
+        </svg>
+      </div>
+      <div>
+        <div class="oc-rest-name">BCIITFoodhub</div>
+        <div class="oc-rest-sub">
+          {{ order.created_at|date:"d M Y" }} &middot;
+          {{ order.created_at|time:"h:i A" }} &middot;
+          ORD00{{ order.id }}
+        </div>
+      </div>
+    </div>
+    <span class="oc-badge oc-badge-{{ order.status|lower }}">
+      <span class="oc-dot oc-dot-{{ order.status|lower }}"></span>
+      {{ order.status }}
+    </span>
+  </div>
+
+  {% if order.status == "Cancelled" %}
+  <div class="oc-cancelled-strip">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a32d2d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="15" y1="9" x2="9" y2="15"/>
+      <line x1="9" y1="9" x2="15" y2="15"/>
+    </svg>
+    Your order was cancelled
+  </div>
+  {% elif show_progress %}
+  <div class="oc-progress">
+    <p class="oc-progress-label">Order tracking</p>
+    <div class="oc-track">
+
+      <div class="oc-step">
+        <div class="oc-circle oc-done">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6 5 9 10 3"/></svg>
+        </div>
+        <span class="oc-step-txt oc-done">Placed</span>
+      </div>
+
+      <div class="oc-line {% if order.status == 'Delivered' %}oc-done{% endif %}"></div>
+
+      <div class="oc-step">
+        <div class="oc-circle {% if order.status == 'Delivered' %}oc-done{% elif order.status == 'Placed' %}oc-active{% endif %}">
+          {% if order.status == 'Delivered' %}
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6 5 9 10 3"/></svg>
+          {% else %}
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="3"/></svg>
+          {% endif %}
+        </div>
+        <span class="oc-step-txt {% if order.status == 'Delivered' %}oc-done{% elif order.status == 'Placed' %}oc-active{% endif %}">Preparing</span>
+      </div>
+
+      <div class="oc-line {% if order.status == 'Delivered' %}oc-done{% endif %}"></div>
+
+      <div class="oc-step">
+        <div class="oc-circle {% if order.status == 'Delivered' %}oc-done{% endif %}">
+          {% if order.status == 'Delivered' %}
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6 5 9 10 3"/></svg>
+          {% else %}3{% endif %}
+        </div>
+        <span class="oc-step-txt {% if order.status == 'Delivered' %}oc-done{% endif %}">Delivered</span>
+      </div>
+
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="oc-items">
+    {% for item in order.items.all %}
+    <div class="oc-item-line">
+      <span class="oc-veg-icon"><span class="oc-veg-dot"></span></span>
+      <span class="oc-item-name">{{ item.food.name }}</span>
+      <span class="oc-item-qty">× {{ item.quantity }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="oc-footer">
+    <div>
+      <div class="oc-meta">{{ order.items.count }} item{{ order.items.count|pluralize }}</div>
+      <div class="oc-total">₹{{ order.total_price }}</div>
+    </div>
+    <div class="oc-actions">
+      {% if order.status == "Placed" %}
+        <form method="post" action="{% url 'cancel_order' order.id %}" style="display:inline">
+          {% csrf_token %}
+          <button class="oc-btn oc-btn-cancel">Cancel order</button>
+        </form>
+      {% else %}
+        <a href="{% url 'menu' %}" class="btn-browse">Browse menu</a>
+        {% if order.status == "Delivered" %}
+          <a href="{% url 'download_invoice' order.id %}" class="oc-btn oc-btn-invoice">Invoice</a>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+</div>

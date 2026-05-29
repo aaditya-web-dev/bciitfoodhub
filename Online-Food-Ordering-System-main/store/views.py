@@ -1,20 +1,28 @@
 import hashlib
 import uuid
 from django.conf import settings
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from .models import Order, OrderItem, PendingOrder, Food
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Food, Order, OrderItem,PendingOrder
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 import json
 from django.http import JsonResponse
+from django.contrib.auth.models import User
+from django.contrib import messages
+import io
+from django.http import HttpResponse, Http404
 
-
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.units import mm
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+)
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 
 def home(request):
     foods = Food.objects.all()[:3]
@@ -326,41 +334,7 @@ def payment_success(request):
         print("ERROR saving order:", str(e))
 
     return redirect(f"/payment-success/?txnid={txnid}&amount={amount}")
-# @csrf_exempt
-# def payment_success(request):
-#     txnid = request.POST.get('txnid') or request.GET.get('txnid', '')
-#     amount = request.POST.get('amount') or request.GET.get('amount', '')
 
-#     try:
-#         pending = PendingOrder.objects.get(txnid=txnid)
-
-#         order = Order.objects.create(
-#             user=pending.user,
-#             txnid=txnid,   # ✅ ADD THIS
-#             total_price=pending.total,
-#             status="Placed"
-#         )
-
-#         for food_id, item in pending.cart_data.items():
-#             food = Food.objects.get(id=food_id)
-#             OrderItem.objects.create(
-#                 order=order,
-#                 food=food,
-#                 quantity=item['quantity']
-#             )
-#         # after order + items created
-#         pending.delete()
-        
-#         # NOW clear cart
-#         request.session['cart'] = {}
-
-#     except PendingOrder.DoesNotExist:
-#         pass
-
-#     except Exception as e:
-#         print("ERROR saving order:", str(e))
-
-#     return redirect(f"/payment-success/?txnid={txnid}&amount={amount}")
 
 def payment_success_page(request):
     txnid = request.GET.get('txnid')
@@ -395,9 +369,6 @@ def cancel_order(request, order_id):
 
 # Authentication Views
 
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -428,9 +399,6 @@ def user_logout(request):
     return redirect('login')
 
 
-from django.contrib.auth.models import User
-from django.shortcuts import render, redirect
-from django.contrib import messages
 
 def register_view(request):
     if request.method == 'POST':
@@ -457,23 +425,6 @@ def register_view(request):
         return redirect('login')
 
     return render(request, 'register.html')
-
-
-
-
-
-
-import io
-from django.http import HttpResponse, Http404
-from django.contrib.auth.decorators import login_required
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.lib.units import mm
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
-)
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 
 
 @login_required(login_url='/login/')
