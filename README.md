@@ -29,12 +29,14 @@ Dynamic cart using JavaScript,
 Media handling for food images.
 
 ## 🧑‍💻 Tech Stack
- Layer	Technology,
-Backend	Django (Python),
-Frontend	HTML, Bootstrap, CSS, JavaScript,
-Database	MySQL,
-Authentication	Django Auth,
-Media Storage	Django Media Files.
+
+| Layer | Technology |
+|---|---|
+| Backend | Django (Python) |
+| Frontend | HTML, Bootstrap, CSS, JavaScript |
+| Database | MySQL |
+| Authentication | Django Auth |
+| Media Storage | Django Media Files |
 
 
 
