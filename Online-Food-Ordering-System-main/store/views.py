@@ -251,7 +251,7 @@ def place_order(request):
 
     total = 0
     for food_id, item in cart.items():
-        food = Food.objects.get(id=food_id)
+        food = get_object_or_404(Food, id=food_id)
         total += food.price * item['quantity']
 
     amount = "{:.2f}".format(float(total))
@@ -301,21 +301,59 @@ def place_order(request):
 
 @csrf_exempt
 def payment_success(request):
-    txnid = request.POST.get('txnid') or request.GET.get('txnid', '')
-    amount = request.POST.get('amount') or request.GET.get('amount', '')
+    data = request.POST if request.method == "POST" else request.GET
+
+    txnid = data.get('txnid', '')
+    amount = data.get('amount', '')
+    status = data.get('status', '')
+    productinfo = data.get('productinfo', 'Food Order')
+    firstname = data.get('firstname', '')
+    email = data.get('email', '')
+    received_hash = data.get('hash', '')
+
+    # --- Verify this callback actually came from PayU ---
+    # PayU's official reverse-hash formula:
+    # sha512(salt|status|udf10|udf9|udf8|udf7|udf6|udf5|udf4|udf3|udf2|udf1|email|firstname|productinfo|amount|txnid|key)
+    # This app never sets udf1-udf10 on the request, so all 10 are empty here.
+    udf_fields = [""] * 10  # udf10, udf9, ..., udf1 (all unused by this app)
+    hash_parts = (
+        [settings.PAYU_SALT, status]
+        + udf_fields
+        + [email, firstname, productinfo, amount, txnid, settings.PAYU_MERCHANT_KEY]
+    )
+    hash_string = "|".join(hash_parts)
+    expected_hash = hashlib.sha512(hash_string.encode('utf-8')).hexdigest()
+
+    if received_hash != expected_hash:
+        # TEMP DEBUG — remove once hash verification is confirmed working end-to-end
+        print(f"PAYMENT REJECTED: hash mismatch for txnid={txnid}")
+        print(f"  hash_string used: {hash_string}")
+        print(f"  expected_hash:    {expected_hash}")
+        print(f"  received_hash:    {received_hash}")
+        return redirect(f"/payment/failed/?txnid={txnid}")
+
+    if status != "success":
+        print(f"PAYMENT REJECTED: status={status} for txnid={txnid}")
+        return redirect(f"/payment/failed/?txnid={txnid}")
 
     try:
         pending = PendingOrder.objects.get(txnid=txnid)
 
+        # Make sure the paid amount actually matches what we quoted at checkout
+        if str(pending.total) != str(amount):
+            print(f"PAYMENT REJECTED: amount mismatch for txnid={txnid} "
+                  f"(expected {pending.total}, got {amount})")
+            return redirect(f"/payment/failed/?txnid={txnid}")
+
         order = Order.objects.create(
-            user=pending.user,          # ✅ user comes from PendingOrder, not session
+            user=pending.user,          # user comes from PendingOrder, not session
             txnid=txnid,
             total_price=pending.total,
             status="Placed"
         )
 
         for food_id, item in pending.cart_data.items():
-            food = Food.objects.get(id=food_id)
+            food = get_object_or_404(Food, id=food_id)
             OrderItem.objects.create(
                 order=order,
                 food=food,
@@ -324,14 +362,16 @@ def payment_success(request):
 
         pending.delete()
 
-        # ✅ Clear cart for the correct user's session if they're logged in
+        # Clear cart for the correct user's session if they're logged in
         if request.user.is_authenticated:
             request.session['cart'] = {}
 
     except PendingOrder.DoesNotExist:
-        pass
+        print(f"PAYMENT REJECTED: no pending order found for txnid={txnid}")
+        return redirect(f"/payment/failed/?txnid={txnid}")
     except Exception as e:
         print("ERROR saving order:", str(e))
+        return redirect(f"/payment/failed/?txnid={txnid}")
 
     return redirect(f"/payment-success/?txnid={txnid}&amount={amount}")
 

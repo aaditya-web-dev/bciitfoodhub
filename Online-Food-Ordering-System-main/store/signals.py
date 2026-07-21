@@ -32,10 +32,16 @@ def order_sms(sender, instance, created, **kwargs):
     if not phone:
         return
 
-    # ✅ Order placed
-    if created:
-        send_sms(phone, f"Order {instance.txnid} placed successfully!")
+    try:
+        # ✅ Order placed
+        if created:
+            send_sms(phone, f"Order {instance.txnid} placed successfully!")
 
-    # ✅ Delivered
-    elif instance.status == "Delivered":
-        send_sms(phone, f"Order {instance.txnid} delivered! 🍔")
+        # ✅ Delivered
+        elif instance.status == "Delivered":
+            send_sms(phone, f"Order {instance.txnid} delivered! 🍔")
+    except Exception as e:
+        # SMS is a notification, not part of the order transaction — a failed
+        # text (e.g. unverified number on a Twilio trial account) must never
+        # cause the order itself to appear to have failed.
+        print(f"SMS NOTIFICATION FAILED for order {instance.txnid}: {e}")
