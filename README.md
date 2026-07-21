@@ -116,7 +116,7 @@ pip install -r requirements.txt
 ### 3. Create the database
 
 ```sql
-CREATE DATABASE food_db;
+CREATE DATABASE db_name;
 ```
 
 ### 4. Run migrations & create an admin user
